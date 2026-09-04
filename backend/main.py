@@ -22,8 +22,6 @@ HEADERS = {
 }
 
 RAWG_API_KEY = "c37ec2b71cdc4a8abbf954e0c9becbfa"
-
-# Cloudflare Worker Proxy URL
 WORKER_PROXY_URL = "https://young-voice-16ff.gcmshan.workers.dev/?url="
 
 POPULAR_GAMES = [
@@ -60,10 +58,11 @@ def clean_game_title(raw_title: str) -> str:
     return cleaned.strip()
 
 async def fetch_html(client: httpx.AsyncClient, target_url: str):
-    """ Cloudflare Worker Proxy එක හරහා HTML ලබාගන්නා Helper function එක """
     try:
-        proxy_request_url = f"{WORKER_PROXY_URL}{urllib.parse.quote(target_url)}"
-        resp = await client.get(proxy_request_url, timeout=12.0)
+        # Proper URL Encoding for Cloudflare Worker Proxy
+        encoded_target = urllib.parse.quote(target_url, safe='')
+        proxy_request_url = f"{WORKER_PROXY_URL}{encoded_target}"
+        resp = await client.get(proxy_request_url, timeout=15.0)
         if resp.status_code == 200:
             return resp.text
     except Exception as e:
@@ -98,7 +97,7 @@ async def get_suggestions(q: str = Query("", min_length=2)):
 
     if len(matches) < 3:
         try:
-            async with httpx.AsyncClient(timeout=3.0) as client:
+            async with httpx.AsyncClient(timeout=4.0) as client:
                 rawg_url = f"https://api.rawg.io/api/games?key={RAWG_API_KEY}&search={urllib.parse.quote(query_clean)}&page_size=5"
                 resp = await client.get(rawg_url)
                 if resp.status_code == 200:
@@ -135,10 +134,10 @@ async def search_games(q: str = Query("", min_length=1)):
     query_clean = q.strip().lower()
     results = []
 
-    async with httpx.AsyncClient(follow_redirects=True, timeout=12.0) as client:
+    async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
         # 1. FitGirl Repacks Search
         try:
-            fg_url = f"https://fitgirl-repacks.site/?s={urllib.parse.quote(query_clean)}"
+            fg_url = f"https://fitgirl-repacks.site/?s={urllib.parse.quote_plus(query_clean)}"
             fg_html = await fetch_html(client, fg_url)
             if fg_html:
                 soup = BeautifulSoup(fg_html, 'html.parser')
@@ -169,7 +168,7 @@ async def search_games(q: str = Query("", min_length=1)):
 
         # 2. DODI Repacks Search
         try:
-            dodi_url = f"https://dodi-repacks.site/?s={urllib.parse.quote(query_clean)}"
+            dodi_url = f"https://dodi-repacks.site/?s={urllib.parse.quote_plus(query_clean)}"
             dodi_html = await fetch_html(client, dodi_url)
             if dodi_html:
                 soup = BeautifulSoup(dodi_html, 'html.parser')
@@ -200,9 +199,9 @@ async def search_games(q: str = Query("", min_length=1)):
             print(f"DODI Error: {e}")
 
     trusted_sites = [
-        {"name": "FitGirl Repacks", "badge": "Verified Repacker", "url": f"https://fitgirl-repacks.site/?s={urllib.parse.quote(query_clean)}"},
-        {"name": "DODI Repacks", "badge": "Verified Repacker", "url": f"https://dodi-repacks.site/?s={urllib.parse.quote(query_clean)}"},
-        {"name": "SteamRIP", "badge": "Pre-Installed Direct", "url": f"https://steamrip.com/?s={urllib.parse.quote(query_clean)}"}
+        {"name": "FitGirl Repacks", "badge": "Verified Repacker", "url": f"https://fitgirl-repacks.site/?s={urllib.parse.quote_plus(query_clean)}"},
+        {"name": "DODI Repacks", "badge": "Verified Repacker", "url": f"https://dodi-repacks.site/?s={urllib.parse.quote_plus(query_clean)}"},
+        {"name": "SteamRIP", "badge": "Pre-Installed Direct", "url": f"https://steamrip.com/?s={urllib.parse.quote_plus(query_clean)}"}
     ]
 
     return {"results": results, "trustedSites": trusted_sites}
