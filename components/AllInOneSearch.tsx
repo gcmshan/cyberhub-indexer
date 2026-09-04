@@ -1,18 +1,24 @@
 "use client";
 
+import FeedbackModal from "./FeedbackModal";
 import React, { useState, useEffect, useRef } from "react";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function AllInOneSearch() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [lastSelected, setLastSelected] = useState(""); // Click කළ Keyword එක මතක තබා ගැනීමට
   const [results, setResults] = useState<any[]>([]);
   const [trustedSites, setTrustedSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Feedback Modal එක Open/Close කිරීමට State එක
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Close suggestions on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -23,14 +29,21 @@ export default function AllInOneSearch() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch Suggestions from Local FastAPI Backend (No CORS Issue!)
+  // Fetch Suggestions Logic
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       const trimmedQuery = query.trim();
+
+      // Selected keyword එකට සමාන නම් suggestion නොපෙන්වයි
+      if (trimmedQuery === lastSelected) {
+        setShowSuggestions(false);
+        return;
+      }
+
       if (trimmedQuery.length >= 2) {
         try {
           const res = await fetch(
-            `https://amazing-salamander-896e62.netlify.app/api/suggestions?q=${encodeURIComponent(trimmedQuery)}`
+            `${API_BASE_URL}/api/suggestions?q=${encodeURIComponent(trimmedQuery)}`
           );
           if (res.ok) {
             const data = await res.json();
@@ -52,7 +65,7 @@ export default function AllInOneSearch() {
     }, 200);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [query]);
+  }, [query, lastSelected]);
 
   const fetchResults = async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
@@ -60,14 +73,20 @@ export default function AllInOneSearch() {
     setLoading(true);
     try {
       const res = await fetch(
-        `https://amazing-salamander-896e62.netlify.app/api/search?q=${encodeURIComponent(searchQuery)}`
+        `${API_BASE_URL}/api/search?q=${encodeURIComponent(searchQuery)}`
       );
       
+      if (!res.ok) {
+        throw new Error(`Server status: ${res.status}`);
+      }
+
       const data = await res.json();
       setResults(data.results || []);
       setTrustedSites(data.trustedSites || []);
     } catch (err) {
       console.error("Fetch error:", err);
+      setResults([]);
+      setTrustedSites([]);
     } finally {
       setLoading(false);
     }
@@ -80,6 +99,19 @@ export default function AllInOneSearch() {
 
   return (
     <div className="w-full px-4 text-white py-6">
+      {/* Top Bar with Version & Report Button */}
+      <div className="flex justify-between items-center max-w-5xl mx-auto mb-6">
+        <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full">
+          v1.2 Live Indexer
+        </span>
+        <button
+          onClick={() => setIsFeedbackOpen(true)}
+          className="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5 shadow-md"
+        >
+          <span>💬</span> Report Bug / Feedback
+        </button>
+      </div>
+
       <div className="text-center mb-8">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2">
           CyberHub Games Indexer
@@ -95,8 +127,17 @@ export default function AllInOneSearch() {
             <input
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => query.trim().length >= 2 && setShowSuggestions(true)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                if (e.target.value !== lastSelected) {
+                  setLastSelected(""); // ටයිප් කිරීම නැවත පටන් ගත් විට reset වේ
+                }
+              }}
+              onFocus={() => {
+                if (query.trim().length >= 2 && query !== lastSelected) {
+                  setShowSuggestions(true);
+                }
+              }}
               placeholder="Type game name (e.g. God of War, GTA V)..."
               className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
@@ -117,6 +158,8 @@ export default function AllInOneSearch() {
                   key={idx}
                   onClick={() => {
                     setQuery(title);
+                    setLastSelected(title); // Selected keyword ලෙස mark කරයි
+                    setShowSuggestions(false); // Dropdown එක වසයි
                     fetchResults(title);
                   }}
                   className="px-4 py-3 hover:bg-slate-800 text-sm cursor-pointer border-b border-slate-800/50 last:border-0 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors"
@@ -129,7 +172,6 @@ export default function AllInOneSearch() {
           )}
         </div>
 
-        {/* Direct Portals */}
         {trustedSites.length > 0 && (
           <div className="mb-8 bg-slate-900/80 border border-indigo-500/30 p-4 rounded-2xl">
             <h2 className="text-xs font-bold text-indigo-400 tracking-wider uppercase mb-3">
@@ -155,7 +197,6 @@ export default function AllInOneSearch() {
           </div>
         )}
 
-        {/* Results Grid */}
         {loading ? (
           <div className="text-center py-12 text-slate-400 font-semibold animate-pulse">
             Extracting Repacks and Magnet Links...
@@ -230,6 +271,12 @@ export default function AllInOneSearch() {
           </div>
         )}
       </div>
+
+      {/* Feedback Modal Component */}
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+      />
     </div>
   );
 }

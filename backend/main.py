@@ -4,6 +4,8 @@ import httpx
 from bs4 import BeautifulSoup
 import urllib.parse
 import re
+import hashlib
+from mangum import Mangum
 
 app = FastAPI()
 
@@ -16,7 +18,7 @@ app.add_middleware(
 )
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/122.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/128.0.0.0 Safari/537.36"
 }
 
 RAWG_API_KEY = "c37ec2b71cdc4a8abbf954e0c9becbfa"
@@ -31,7 +33,11 @@ POPULAR_GAMES = [
     "Call of Duty: Modern Warfare", "Far Cry 6", "Palworld", "Helldivers 2"
 ]
 
-EXCLUDE_KEYWORDS = ["details", "troubleshooting", "upcoming", "faq", "repack features", "changelog", "update list"]
+EXCLUDE_KEYWORDS = [
+    "details", "troubleshooting", "upcoming", "faq", "repack features", 
+    "changelog", "update list", "extended look", "trailer", "teaser", 
+    "gameplay video", "first look", "soundtrack", "ost", "2160p", "1080p video", "4k video"
+]
 
 def is_valid_game_post(title: str) -> bool:
     title_lower = title.lower()
@@ -40,7 +46,9 @@ def is_valid_game_post(title: str) -> bool:
             return False
     return True
 
-# Clean game title to get better API search matches
+def generate_stable_id(prefix: str, url: str) -> str:
+    return f"{prefix}-{hashlib.md5(url.encode()).hexdigest()[:8]}"
+
 def clean_game_title(raw_title: str) -> str:
     cleaned = re.sub(r'\(.*?\)', '', raw_title)
     cleaned = re.sub(r'\[.*?\]', '', cleaned)
@@ -48,7 +56,6 @@ def clean_game_title(raw_title: str) -> str:
     cleaned = re.sub(r'\+.*', '', cleaned)
     return cleaned.strip()
 
-# Fetch Exact High-Quality Cover Image from RAWG API
 async def get_rawg_image(client: httpx.AsyncClient, game_title: str) -> str:
     clean_title = clean_game_title(game_title)
     try:
@@ -64,6 +71,11 @@ async def get_rawg_image(client: httpx.AsyncClient, game_title: str) -> str:
         print(f"RAWG Fetch Error for ({clean_title}): {e}")
     
     return "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800"
+
+@app.get("/")
+@app.get("/api")
+async def root():
+    return {"status": "online", "message": "CyberHub API is running"}
 
 @app.get("/api/suggestions")
 async def get_suggestions(q: str = Query("", min_length=2)):
@@ -110,7 +122,7 @@ async def search_games(q: str = Query("", min_length=1)):
     results = []
 
     async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
-        # FitGirl Repacks
+        # 1. FitGirl Repacks Search
         try:
             fg_url = f"https://fitgirl-repacks.site/?s={urllib.parse.quote(query_clean)}"
             resp = await client.get(fg_url, headers=HEADERS)
@@ -127,11 +139,10 @@ async def search_games(q: str = Query("", min_length=1)):
                     magnet_elem = article.find('a', href=re.compile(r'^magnet:\?'))
                     magnet_link = magnet_elem['href'] if magnet_elem else await extract_magnet_or_torrent(client, page_url)
                     
-                    # RAWG Official Wallpaper Fetch
                     img_url = await get_rawg_image(client, title)
 
                     results.append({
-                        "id": f"fg-{hash(page_url)}",
+                        "id": generate_stable_id("fg", page_url),
                         "title": title,
                         "source": "FitGirl Repacks",
                         "image": img_url,
@@ -141,7 +152,7 @@ async def search_games(q: str = Query("", min_length=1)):
                     if len(results) >= 3: break
         except Exception as e: print(f"FitGirl Error: {e}")
 
-        # DODI Repacks
+        # 2. DODI Repacks Search
         try:
             dodi_url = f"https://dodi-repacks.site/?s={urllib.parse.quote(query_clean)}"
             resp = await client.get(dodi_url, headers=HEADERS)
@@ -158,11 +169,10 @@ async def search_games(q: str = Query("", min_length=1)):
                     page_url = title_elem.find('a')['href']
                     magnet_link = await extract_magnet_or_torrent(client, page_url)
                     
-                    # RAWG Official Wallpaper Fetch
                     img_url = await get_rawg_image(client, title)
 
                     results.append({
-                        "id": f"dodi-{hash(page_url)}",
+                        "id": generate_stable_id("dodi", page_url),
                         "title": title,
                         "source": "DODI Repacks",
                         "image": img_url,
@@ -173,6 +183,7 @@ async def search_games(q: str = Query("", min_length=1)):
                     if dodi_count >= 3: break
         except Exception as e: print(f"DODI Error: {e}")
 
+    # Top Direct Portals Search Links (SteamRIP එක මෙතැන පවතී)
     trusted_sites = [
         {"name": "FitGirl Repacks", "badge": "Verified Repacker", "url": f"https://fitgirl-repacks.site/?s={urllib.parse.quote(query_clean)}"},
         {"name": "DODI Repacks", "badge": "Verified Repacker", "url": f"https://dodi-repacks.site/?s={urllib.parse.quote(query_clean)}"},
@@ -180,7 +191,5 @@ async def search_games(q: str = Query("", min_length=1)):
     ]
 
     return {"results": results, "trustedSites": trusted_sites}
-
-from mangum import Mangum
 
 handler = Mangum(app)
