@@ -23,6 +23,9 @@ HEADERS = {
 
 RAWG_API_KEY = "c37ec2b71cdc4a8abbf954e0c9becbfa"
 
+# Cloudflare Worker Proxy URL
+WORKER_PROXY_URL = "https://young-voice-16ff.gcmshan.workers.dev/?url="
+
 POPULAR_GAMES = [
     "Grand Theft Auto V", "Grand Theft Auto IV", "Grand Theft Auto: San Andreas",
     "God of War", "God of War Ragnarök", "Cyberpunk 2077", "Elden Ring",
@@ -55,6 +58,17 @@ def clean_game_title(raw_title: str) -> str:
     cleaned = re.sub(r'v\d+\.\d+.*', '', cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r'\+.*', '', cleaned)
     return cleaned.strip()
+
+async def fetch_html(client: httpx.AsyncClient, target_url: str):
+    """ Cloudflare Worker Proxy එක හරහා HTML ලබාගන්නා Helper function එක """
+    try:
+        proxy_request_url = f"{WORKER_PROXY_URL}{urllib.parse.quote(target_url)}"
+        resp = await client.get(proxy_request_url, timeout=12.0)
+        if resp.status_code == 200:
+            return resp.text
+    except Exception as e:
+        print(f"Fetch Error ({target_url}): {e}")
+    return None
 
 async def get_rawg_image(client: httpx.AsyncClient, game_title: str) -> str:
     clean_title = clean_game_title(game_title)
@@ -99,21 +113,21 @@ async def get_suggestions(q: str = Query("", min_length=2)):
     return {"suggestions": matches[:5]}
 
 async def extract_magnet_or_torrent(client: httpx.AsyncClient, page_url: str):
-    try:
-        resp = await client.get(page_url, headers=HEADERS, timeout=6.0)
-        if resp.status_code == 200:
-            soup = BeautifulSoup(resp.text, 'html.parser')
+    html_content = await fetch_html(client, page_url)
+    if html_content:
+        try:
+            soup = BeautifulSoup(html_content, 'html.parser')
             for a in soup.find_all('a', href=True):
                 if a['href'].startswith('magnet:?'):
                     return a['href']
             for a in soup.find_all('a', href=True):
                 if '1337x.to' in a['href'] or 'itorrents.org' in a['href']:
                     return a['href']
-            matches = re.findall(r'magnet:\?xt=urn:btih:[a-zA-Z0-9]+', resp.text)
+            matches = re.findall(r'magnet:\?xt=urn:btih:[a-zA-Z0-9]+', html_content)
             if matches:
                 return matches[0]
-    except Exception as e:
-        print(f"Deep Fetch Error ({page_url}): {e}")
+        except Exception as e:
+            print(f"Deep Fetch Error ({page_url}): {e}")
     return None
 
 @app.get("/api/search")
@@ -121,13 +135,13 @@ async def search_games(q: str = Query("", min_length=1)):
     query_clean = q.strip().lower()
     results = []
 
-    async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
+    async with httpx.AsyncClient(follow_redirects=True, timeout=12.0) as client:
         # 1. FitGirl Repacks Search
         try:
             fg_url = f"https://fitgirl-repacks.site/?s={urllib.parse.quote(query_clean)}"
-            resp = await client.get(fg_url, headers=HEADERS)
-            if resp.status_code == 200:
-                soup = BeautifulSoup(resp.text, 'html.parser')
+            fg_html = await fetch_html(client, fg_url)
+            if fg_html:
+                soup = BeautifulSoup(fg_html, 'html.parser')
                 articles = soup.find_all('article', class_='post')
                 for article in articles:
                     title_elem = article.find('h1', class_='entry-title')
@@ -150,14 +164,15 @@ async def search_games(q: str = Query("", min_length=1)):
                         "magnetUrl": magnet_link
                     })
                     if len(results) >= 3: break
-        except Exception as e: print(f"FitGirl Error: {e}")
+        except Exception as e: 
+            print(f"FitGirl Error: {e}")
 
         # 2. DODI Repacks Search
         try:
             dodi_url = f"https://dodi-repacks.site/?s={urllib.parse.quote(query_clean)}"
-            resp = await client.get(dodi_url, headers=HEADERS)
-            if resp.status_code == 200:
-                soup = BeautifulSoup(resp.text, 'html.parser')
+            dodi_html = await fetch_html(client, dodi_url)
+            if dodi_html:
+                soup = BeautifulSoup(dodi_html, 'html.parser')
                 articles = soup.find_all('article')
                 dodi_count = 0
                 for article in articles:
@@ -181,9 +196,9 @@ async def search_games(q: str = Query("", min_length=1)):
                     })
                     dodi_count += 1
                     if dodi_count >= 3: break
-        except Exception as e: print(f"DODI Error: {e}")
+        except Exception as e: 
+            print(f"DODI Error: {e}")
 
-    # Top Direct Portals Search Links (SteamRIP එක මෙතැන පවතී)
     trusted_sites = [
         {"name": "FitGirl Repacks", "badge": "Verified Repacker", "url": f"https://fitgirl-repacks.site/?s={urllib.parse.quote(query_clean)}"},
         {"name": "DODI Repacks", "badge": "Verified Repacker", "url": f"https://dodi-repacks.site/?s={urllib.parse.quote(query_clean)}"},
