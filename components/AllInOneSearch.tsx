@@ -4,7 +4,7 @@ import FeedbackModal from "./FeedbackModal";
 import React, { useState, useEffect, useRef } from "react";
 
 // Cloudflare Worker API Endpoint
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://withered-moon-9290.gcmshan.workers.dev";
+const API_BASE_URL = "https://withered-moon-9290.gcmshan.workers.dev";
 
 export default function AllInOneSearch() {
   const [query, setQuery] = useState("");
