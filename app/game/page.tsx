@@ -1,9 +1,25 @@
+import { Metadata } from "next";
 import AllInOneSearch from "@/components/AllInOneSearch";
 
 interface PageProps {
   params: Promise<{
     slug: string;
   }>;
+}
+
+// Google Search indexing සඳහා dynamic SEO metadata
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const query = decodeURIComponent(slug).replace(/-/g, " ");
+
+  return {
+    title: `Download ${query} Repack - CyberHub Games`,
+    description: `Get fast, direct repack search results for ${query} on CyberHub Games.`,
+    openGraph: {
+      title: `Download ${query} Repack - CyberHub Games`,
+      description: `Find trusted repack download links and details for ${query}.`,
+    },
+  };
 }
 
 export default async function GamePage({ params }: PageProps) {
