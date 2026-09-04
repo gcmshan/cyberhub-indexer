@@ -7,7 +7,7 @@ interface PageProps {
   }>;
 }
 
-// Google Search indexing සඳහා dynamic SEO metadata
+// Google Search Indexing Dynamic SEO Metadata
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const query = decodeURIComponent(slug).replace(/-/g, " ");
@@ -29,7 +29,7 @@ export default async function GamePage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-slate-950 flex flex-col items-center justify-start pt-10">
-      <AllInOneSearch defaultQuery={query} />
+      <AllInOneSearch />
     </main>
   );
 }
