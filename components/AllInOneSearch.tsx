@@ -30,7 +30,7 @@ export default function AllInOneSearch() {
       if (trimmedQuery.length >= 2) {
         try {
           const res = await fetch(
-            `const res = await fetch(`https://amazing-salamander-896e62.netlify.app/api/suggestions?q=${encodeURIComponent(trimmedQuery)}`);/api/suggestions?q=${encodeURIComponent(trimmedQuery)}`
+            `https://amazing-salamander-896e62.netlify.app/api/suggestions?q=${encodeURIComponent(trimmedQuery)}`
           );
           if (res.ok) {
             const data = await res.json();
