@@ -60,8 +60,9 @@ export default function AllInOneSearch() {
     setLoading(true);
     try {
       const res = await fetch(
-        `const res = await fetch(`https://amazing-salamander-896e62.netlify.app/api/search?q=${encodeURIComponent(query)}`);/api/search?q=${encodeURIComponent(searchQuery)}`
+        `https://amazing-salamander-896e62.netlify.app/api/search?q=${encodeURIComponent(searchQuery)}`
       );
+      
       const data = await res.json();
       setResults(data.results || []);
       setTrustedSites(data.trustedSites || []);
