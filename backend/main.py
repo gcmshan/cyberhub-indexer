@@ -59,12 +59,13 @@ def clean_game_title(raw_title: str) -> str:
 
 async def fetch_html(client: httpx.AsyncClient, target_url: str):
     try:
-        # Proper URL Encoding for Cloudflare Worker Proxy
         encoded_target = urllib.parse.quote(target_url, safe='')
         proxy_request_url = f"{WORKER_PROXY_URL}{encoded_target}"
-        resp = await client.get(proxy_request_url, timeout=15.0)
-        if resp.status_code == 200:
-            return resp.text
+        
+        async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=20.0) as local_client:
+            resp = await local_client.get(proxy_request_url, headers=HEADERS)
+            if resp.status_code == 200:
+                return resp.text
     except Exception as e:
         print(f"Fetch Error ({target_url}): {e}")
     return None
@@ -73,13 +74,14 @@ async def get_rawg_image(client: httpx.AsyncClient, game_title: str) -> str:
     clean_title = clean_game_title(game_title)
     try:
         url = f"https://api.rawg.io/api/games?key={RAWG_API_KEY}&search={urllib.parse.quote(clean_title)}&page_size=1"
-        resp = await client.get(url, timeout=5.0)
-        if resp.status_code == 200:
-            data = resp.json()
-            if data.get("results") and len(data["results"]) > 0:
-                bg_image = data["results"][0].get("background_image")
-                if bg_image:
-                    return bg_image
+        async with httpx.AsyncClient(verify=False, timeout=5.0) as local_client:
+            resp = await local_client.get(url)
+            if resp.status_code == 200:
+                data = resp.json()
+                if data.get("results") and len(data["results"]) > 0:
+                    bg_image = data["results"][0].get("background_image")
+                    if bg_image:
+                        return bg_image
     except Exception as e:
         print(f"RAWG Fetch Error for ({clean_title}): {e}")
     
@@ -97,7 +99,7 @@ async def get_suggestions(q: str = Query("", min_length=2)):
 
     if len(matches) < 3:
         try:
-            async with httpx.AsyncClient(timeout=4.0) as client:
+            async with httpx.AsyncClient(verify=False, timeout=4.0) as client:
                 rawg_url = f"https://api.rawg.io/api/games?key={RAWG_API_KEY}&search={urllib.parse.quote(query_clean)}&page_size=5"
                 resp = await client.get(rawg_url)
                 if resp.status_code == 200:
@@ -134,7 +136,7 @@ async def search_games(q: str = Query("", min_length=1)):
     query_clean = q.strip().lower()
     results = []
 
-    async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
+    async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=20.0) as client:
         # 1. FitGirl Repacks Search
         try:
             fg_url = f"https://fitgirl-repacks.site/?s={urllib.parse.quote_plus(query_clean)}"
