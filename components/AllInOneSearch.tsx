@@ -30,7 +30,7 @@ export default function AllInOneSearch() {
       if (trimmedQuery.length >= 2) {
         try {
           const res = await fetch(
-            `http://127.0.0.1:8080/api/suggestions?q=${encodeURIComponent(trimmedQuery)}`
+            `const res = await fetch(`https://amazing-salamander-896e62.netlify.app/api/suggestions?q=${encodeURIComponent(trimmedQuery)}`);/api/suggestions?q=${encodeURIComponent(trimmedQuery)}`
           );
           if (res.ok) {
             const data = await res.json();
@@ -60,7 +60,7 @@ export default function AllInOneSearch() {
     setLoading(true);
     try {
       const res = await fetch(
-        `http://127.0.0.1:8080/api/search?q=${encodeURIComponent(searchQuery)}`
+        `const res = await fetch(`https://amazing-salamander-896e62.netlify.app/api/search?q=${encodeURIComponent(query)}`);/api/search?q=${encodeURIComponent(searchQuery)}`
       );
       const data = await res.json();
       setResults(data.results || []);
