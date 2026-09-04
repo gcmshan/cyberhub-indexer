@@ -180,3 +180,7 @@ async def search_games(q: str = Query("", min_length=1)):
     ]
 
     return {"results": results, "trustedSites": trusted_sites}
+
+from mangum import Mangum
+
+handler = Mangum(app)
