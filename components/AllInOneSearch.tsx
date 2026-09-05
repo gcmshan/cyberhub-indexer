@@ -10,14 +10,12 @@ export default function AllInOneSearch() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [lastSelected, setLastSelected] = useState(""); // Click කළ Keyword එක මතක තබා ගැනීමට
+  const [lastSelected, setLastSelected] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [trustedSites, setTrustedSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
-  // Feedback Modal එක Open/Close කිරීමට State එක
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,12 +28,10 @@ export default function AllInOneSearch() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch Suggestions Logic
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       const trimmedQuery = query.trim();
 
-      // Selected keyword එකට සමාන නම් suggestion නොපෙන්වයි
       if (trimmedQuery === lastSelected) {
         setShowSuggestions(false);
         return;
@@ -100,10 +96,10 @@ export default function AllInOneSearch() {
 
   return (
     <div className="w-full px-4 text-white py-6">
-      {/* Top Bar with Version & Report Button */}
+      {/* Top Bar */}
       <div className="flex justify-between items-center max-w-5xl mx-auto mb-6">
         <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full">
-          v1.2 Live Indexer
+          v1.2 Live Search
         </span>
         <button
           onClick={() => setIsFeedbackOpen(true)}
@@ -113,12 +109,13 @@ export default function AllInOneSearch() {
         </button>
       </div>
 
+      {/* Main Simplified Header */}
       <div className="text-center mb-8">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2">
-          CyberHub Games Indexer
+          Search Any PC Game
         </h1>
-        <p className="text-slate-400 text-sm">
-          Direct BitTorrent & Repack Page Extractor
+        <p className="text-slate-400 text-sm max-w-md mx-auto">
+          Find direct download links, repacks, and torrents for your favorite PC games in seconds.
         </p>
       </div>
 
@@ -131,7 +128,7 @@ export default function AllInOneSearch() {
               onChange={(e) => {
                 setQuery(e.target.value);
                 if (e.target.value !== lastSelected) {
-                  setLastSelected(""); // ටයිප් කිරීම නැවත පටන් ගත් විට reset වේ
+                  setLastSelected("");
                 }
               }}
               onFocus={() => {
@@ -139,7 +136,7 @@ export default function AllInOneSearch() {
                   setShowSuggestions(true);
                 }
               }}
-              placeholder="Type game name (e.g. God of War, GTA V)..."
+              placeholder="Type any PC game name (e.g. GTA V, God of War)..."
               className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
             <button
@@ -147,7 +144,7 @@ export default function AllInOneSearch() {
               disabled={loading}
               className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3.5 rounded-xl transition-colors disabled:opacity-50"
             >
-              {loading ? "Indexing..." : "Search"}
+              {loading ? "Searching..." : "Search"}
             </button>
           </form>
 
@@ -159,8 +156,8 @@ export default function AllInOneSearch() {
                   key={idx}
                   onClick={() => {
                     setQuery(title);
-                    setLastSelected(title); // Selected keyword ලෙස mark කරයි
-                    setShowSuggestions(false); // Dropdown එක වසයි
+                    setLastSelected(title);
+                    setShowSuggestions(false);
                     fetchResults(title);
                   }}
                   className="px-4 py-3 hover:bg-slate-800 text-sm cursor-pointer border-b border-slate-800/50 last:border-0 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors"
@@ -200,7 +197,7 @@ export default function AllInOneSearch() {
 
         {loading ? (
           <div className="text-center py-12 text-slate-400 font-semibold animate-pulse">
-            Extracting Repacks and Magnet Links...
+            Searching Trusted Game Repack Sites...
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -252,7 +249,7 @@ export default function AllInOneSearch() {
                           rel="noopener noreferrer"
                           className="w-full bg-amber-600/80 hover:bg-amber-600 text-white font-medium py-3 rounded-xl text-center transition-colors text-xs flex items-center justify-center gap-1.5"
                         >
-                          🔗 Open Page for Magnet & Mirror Links ↗
+                          🔗 Open Page for Download Links ↗
                         </a>
                       )}
 
@@ -260,9 +257,9 @@ export default function AllInOneSearch() {
                         href={item.pageUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full bg-indigo-600/80 hover:bg-indigo-600 text-white font-medium py-2.5 rounded-xl text-center transition-colors text-xs block"
+                        className="w-full bg-indigo-600/80 hover:bg-indigo-600 text-white font-medium py-2.5 rounded-xl text-center transition-colors text-xs block text-center"
                       >
-                        🌐 Open {item.source} Page ↗
+                        🌐 View Game Page on {item.source} ↗
                       </a>
                     </div>
                   </div>
@@ -273,7 +270,6 @@ export default function AllInOneSearch() {
         )}
       </div>
 
-      {/* Feedback Modal Component */}
       <FeedbackModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
