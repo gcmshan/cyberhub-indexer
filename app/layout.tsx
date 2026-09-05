@@ -6,6 +6,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://cyberhomesimple.com'),
   title: 'CyberHub Games - Search & Index Free Games',
   description: 'Search and find games from trusted repackers with high quality cover art and direct links.',
   keywords: ['games indexer', 'fitgirl repacks', 'dodi repacks', 'steamrip', 'free games search', 'cyberhub'],
