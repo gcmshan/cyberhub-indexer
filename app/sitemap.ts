@@ -1,11 +1,11 @@
 import { MetadataRoute } from 'next';
 
-export const dynamic = 'force-static'; // <--- මෙන්න මේ පේළිය එක් කරන්න
-
 export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = 'https://cyberhomesimple.com';
+
   return [
     {
-      url: 'https://cyberhub-indexer.pages.dev',
+      url: baseUrl,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
