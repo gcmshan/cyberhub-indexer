@@ -1,14 +1,12 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://cyberhomesimple.com';
-
   return [
     {
-      url: baseUrl,
+      url: 'https://cyberhomesimple.com',
       lastModified: new Date(),
       changeFrequency: 'daily',
-      priority: 1,
+      priority: 1.0,
     },
   ];
 }
