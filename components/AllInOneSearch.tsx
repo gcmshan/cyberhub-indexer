@@ -78,7 +78,43 @@ export default function AllInOneSearch() {
       }
 
       const data = await res.json();
-      setResults(data.results || []);
+      let rawResults = data.results || [];
+
+      // --- Smart Search Sorting Algorithm ---
+      const cleanQuery = searchQuery.toLowerCase().trim();
+
+      const sortedResults = rawResults.sort((a: any, b: any) => {
+        const titleA = (a.title || "").toLowerCase();
+        const titleB = (b.title || "").toLowerCase();
+
+        // Query එකේ තියෙන සෑම වචනයක්ම Check කිරීම ( e.g., "god", "war" )
+        const queryWords = cleanQuery.split(" ").filter(w => w.length > 0);
+        
+        const fullMatchA = titleA.includes(cleanQuery);
+        const fullMatchB = titleB.includes(cleanQuery);
+
+        // 1. Exact Full Query Match එක තියෙන එක මුලට
+        if (fullMatchA && !fullMatchB) return -1;
+        if (!fullMatchA && fullMatchB) return 1;
+
+        // 2. Query එකෙන් Title එක ආරම්භ වන ඒවා දෙවැනියට
+        const startsA = titleA.startsWith(cleanQuery);
+        const startsB = titleB.startsWith(cleanQuery);
+        if (startsA && !startsB) return -1;
+        if (!startsA && startsB) return 1;
+
+        // 3. වචන කීයක් ගැලපෙනවද (Word Count Match) අනුව Priority දීම
+        const wordsMatchedA = queryWords.filter(word => titleA.includes(word)).length;
+        const wordsMatchedB = queryWords.filter(word => titleB.includes(word)).length;
+
+        if (wordsMatchedA !== wordsMatchedB) {
+          return wordsMatchedB - wordsMatchedA;
+        }
+
+        return 0;
+      });
+
+      setResults(sortedResults);
       setTrustedSites(data.trustedSites || []);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -109,7 +145,7 @@ export default function AllInOneSearch() {
         </button>
       </div>
 
-      {/* Main Simplified Header */}
+      {/* Main Header */}
       <div className="text-center mb-8">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2">
           Search Any PC Game
