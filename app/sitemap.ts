@@ -1,9 +1,13 @@
 import { MetadataRoute } from "next";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+// Next.js Static Export එකට මෙය Pure Static Route එකක් බව පැවසීම
+export const dynamic = "force-static";
+
+export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://cyberhomesimple.com";
 
-  let gameSlugs: string[] = [
+  // Static Game Slugs List එක (Static Export සඳහා Build-time එකේදී Direct යෙදීම)
+  const gameSlugs = [
     "gta-v",
     "cyberpunk-2077",
     "god-of-war",
@@ -13,22 +17,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "the-witcher-3",
   ];
 
-  try {
-    const res = await fetch("https://withered-moon-9290.gcmshan.workers.dev/api/games-list");
-    if (res.ok) {
-      const data = await res.json();
-      if (data?.slugs && Array.isArray(data.slugs) && data.slugs.length > 0) {
-        gameSlugs = data.slugs;
-      }
-    }
-  } catch (error) {
-    console.error("Sitemap API Fetch Error:", error);
-  }
-
   const gameUrls: MetadataRoute.Sitemap = gameSlugs.map((slug) => ({
     url: `${baseUrl}/game/${slug}`,
     lastModified: new Date(),
-    changeFrequency: "weekly" as const,
+    changeFrequency: "weekly",
     priority: 0.8,
   }));
 
@@ -36,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: "daily" as const,
+      changeFrequency: "daily",
       priority: 1.0,
     },
     ...gameUrls,
