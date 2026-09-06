@@ -3,20 +3,32 @@
 import FeedbackModal from "./FeedbackModal";
 import React, { useState, useEffect, useRef } from "react";
 
-// Cloudflare Worker API Endpoint
 const API_BASE_URL = "https://withered-moon-9290.gcmshan.workers.dev";
 
-export default function AllInOneSearch() {
-  const [query, setQuery] = useState("");
+interface AllInOneSearchProps {
+  initialQuery?: string;
+}
+
+export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProps) {
+  const [query, setQuery] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [lastSelected, setLastSelected] = useState("");
+  const [lastSelected, setLastSelected] = useState(initialQuery);
   const [results, setResults] = useState<any[]>([]);
   const [trustedSites, setTrustedSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // Dynamic Route එකකින් direct query එකක් ආවොත් auto fetch කිරීම
+  useEffect(() => {
+    if (initialQuery) {
+      setQuery(initialQuery);
+      setLastSelected(initialQuery);
+      fetchResults(initialQuery);
+    }
+  }, [initialQuery]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -80,30 +92,26 @@ export default function AllInOneSearch() {
       const data = await res.json();
       let rawResults = data.results || [];
 
-      // --- Smart Search Sorting Algorithm ---
+      // Smart Search Sorting Algorithm
       const cleanQuery = searchQuery.toLowerCase().trim();
 
       const sortedResults = rawResults.sort((a: any, b: any) => {
         const titleA = (a.title || "").toLowerCase();
         const titleB = (b.title || "").toLowerCase();
 
-        // Query එකේ තියෙන සෑම වචනයක්ම Check කිරීම ( e.g., "god", "war" )
         const queryWords = cleanQuery.split(" ").filter(w => w.length > 0);
         
         const fullMatchA = titleA.includes(cleanQuery);
         const fullMatchB = titleB.includes(cleanQuery);
 
-        // 1. Exact Full Query Match එක තියෙන එක මුලට
         if (fullMatchA && !fullMatchB) return -1;
         if (!fullMatchA && fullMatchB) return 1;
 
-        // 2. Query එකෙන් Title එක ආරම්භ වන ඒවා දෙවැනියට
         const startsA = titleA.startsWith(cleanQuery);
         const startsB = titleB.startsWith(cleanQuery);
         if (startsA && !startsB) return -1;
         if (!startsA && startsB) return 1;
 
-        // 3. වචන කීයක් ගැලපෙනවද (Word Count Match) අනුව Priority දීම
         const wordsMatchedA = queryWords.filter(word => titleA.includes(word)).length;
         const wordsMatchedB = queryWords.filter(word => titleB.includes(word)).length;
 
