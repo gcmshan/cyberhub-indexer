@@ -26,6 +26,7 @@ function AdUnit() {
     const invokeScript = document.createElement("script");
     invokeScript.type = "text/javascript";
     invokeScript.src = "https://www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js";
+    invokeScript.async = true;
 
     containerRef.current.appendChild(confScript);
     containerRef.current.appendChild(invokeScript);
