@@ -2,8 +2,10 @@
 
 import FeedbackModal from "./FeedbackModal";
 import React, { useState, useEffect, useRef } from "react";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const API_BASE_URL = "https://withered-moon-9290.gcmshan.workers.dev";
+const TURNSTILE_SITE_KEY = "0x4AAAAAAAcBKb2K3NbxdgF1m";
 
 interface AllInOneSearchProps {
   initialQuery?: string;
@@ -18,6 +20,11 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
   const [trustedSites, setTrustedSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
+  // Verification States
+  const [isVerified, setIsVerified] = useState(false);
+  const [showCaptchaModal, setShowCaptchaModal] = useState(false);
+  const [pendingSearchQuery, setPendingSearchQuery] = useState<string>("");
+
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +33,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
     if (initialQuery) {
       setQuery(initialQuery);
       setLastSelected(initialQuery);
-      fetchResults(initialQuery);
+      triggerSearch(initialQuery);
     }
   }, [initialQuery]);
 
@@ -76,8 +83,19 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
     return () => clearTimeout(delayDebounceFn);
   }, [query, lastSelected]);
 
-  const fetchResults = async (searchQuery: string) => {
+  // Search logic එක triggers කිරීම (Verification Check සමඟ)
+  const triggerSearch = (searchQuery: string) => {
     if (!searchQuery.trim()) return;
+
+    if (!isVerified) {
+      setPendingSearchQuery(searchQuery);
+      setShowCaptchaModal(true);
+    } else {
+      fetchResults(searchQuery);
+    }
+  };
+
+  const fetchResults = async (searchQuery: string) => {
     setShowSuggestions(false);
     setLoading(true);
     try {
@@ -135,15 +153,24 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchResults(query);
+    triggerSearch(query);
+  };
+
+  const handleTurnstileSuccess = () => {
+    setIsVerified(true);
+    setShowCaptchaModal(false);
+    if (pendingSearchQuery) {
+      fetchResults(pendingSearchQuery);
+    }
   };
 
   return (
     <div className="w-full px-4 text-white py-6">
       {/* Top Bar */}
       <div className="flex justify-between items-center max-w-5xl mx-auto mb-6">
-        <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full">
-          v1.2 Live Search
+        <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          v1.2 Protected Search
         </span>
         <button
           onClick={() => setIsFeedbackOpen(true)}
@@ -186,7 +213,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
             <button
               type="submit"
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3.5 rounded-xl transition-colors disabled:opacity-50"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {loading ? "Searching..." : "Search"}
             </button>
@@ -202,7 +229,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
                     setQuery(title);
                     setLastSelected(title);
                     setShowSuggestions(false);
-                    fetchResults(title);
+                    triggerSearch(title);
                   }}
                   className="px-4 py-3 hover:bg-slate-800 text-sm cursor-pointer border-b border-slate-800/50 last:border-0 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors"
                 >
@@ -313,6 +340,31 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
           </div>
         )}
       </div>
+
+      {/* Cloudflare Turnstile Verification Modal */}
+      {showCaptchaModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl relative">
+            <button
+              onClick={() => setShowCaptchaModal(false)}
+              className="absolute top-3 right-3 text-slate-400 hover:text-white"
+            >
+              ✕
+            </button>
+            <div className="text-3xl mb-2">🛡️</div>
+            <h3 className="text-lg font-bold text-white mb-1">Human Verification</h3>
+            <p className="text-xs text-slate-400 mb-4">
+              Please complete the quick security check to view search results.
+            </p>
+            <div className="flex justify-center my-2">
+              <Turnstile
+                siteKey={TURNSTILE_SITE_KEY}
+                onSuccess={handleTurnstileSuccess}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <FeedbackModal
         isOpen={isFeedbackOpen}
