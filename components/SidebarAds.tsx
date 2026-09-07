@@ -27,7 +27,10 @@ export default function SidebarAds() {
   return (
     <>
       {/* Left Banner */}
-      <aside className="fixed left-2 top-24 w-[160px] h-[600px] z-[99999]">
+      <aside 
+        className="fixed left-0 top-20 w-[160px] h-[600px]"
+        style={{ zIndex: 999999 }}
+      >
         <iframe
           srcDoc={adHtml}
           width="160"
@@ -38,7 +41,10 @@ export default function SidebarAds() {
       </aside>
 
       {/* Right Banner */}
-      <aside className="fixed right-2 top-24 w-[160px] h-[600px] z-[99999]">
+      <aside 
+        className="fixed right-0 top-20 w-[160px] h-[600px]"
+        style={{ zIndex: 999999 }}
+      >
         <iframe
           srcDoc={adHtml}
           width="160"
