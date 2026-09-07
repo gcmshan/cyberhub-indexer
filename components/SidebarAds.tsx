@@ -1,7 +1,7 @@
 "use client";
 
 export default function SidebarAds() {
-  const adSrcDoc = `
+  const adHtml = `
     <!DOCTYPE html>
     <html>
       <head>
@@ -29,10 +29,10 @@ export default function SidebarAds() {
       {/* Left Banner */}
       <aside className="hidden lg:block fixed left-2 top-24 w-[160px] h-[600px] z-[9999]">
         <iframe
-          srcDoc={adSrcDoc}
+          srcDoc={adHtml}
           width="160"
           height="600"
-          className="border-0 overflow-hidden"
+          style={{ border: 'none', overflow: 'hidden' }}
           title="Adsterra Left Banner"
         />
       </aside>
@@ -40,10 +40,10 @@ export default function SidebarAds() {
       {/* Right Banner */}
       <aside className="hidden lg:block fixed right-2 top-24 w-[160px] h-[600px] z-[9999]">
         <iframe
-          srcDoc={adSrcDoc}
+          srcDoc={adHtml}
           width="160"
           height="600"
-          className="border-0 overflow-hidden"
+          style={{ border: 'none', overflow: 'hidden' }}
           title="Adsterra Right Banner"
         />
       </aside>
