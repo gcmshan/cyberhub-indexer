@@ -1,51 +1,51 @@
 "use client";
 
-export default function SidebarAds() {
-  const adHtml = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>
-          body { margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-        </style>
-      </head>
-      <body>
-        <script type="text/javascript">
-          atOptions = {
-            'key' : 'e21e0e45d975b4363f88fdde709cf094',
-            'format' : 'iframe',
-            'height' : 600,
-            'width' : 160,
-            'params' : {}
-          };
-        </script>
-        <script type="text/javascript" src="https://www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js"></script>
-      </body>
-    </html>
-  `;
+import { useEffect, useRef } from "react";
 
+function AdSlot() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Remove existing scripts if re-rendering
+    containerRef.current.innerHTML = "";
+
+    const scriptOptions = document.createElement("script");
+    scriptOptions.type = "text/javascript";
+    scriptOptions.text = `
+      atOptions = {
+        'key' : 'e21e0e45d975b4363f88fdde709cf094',
+        'format' : 'iframe',
+        'height' : 600,
+        'width' : 160,
+        'params' : {}
+      };
+    `;
+
+    const scriptInvoke = document.createElement("script");
+    scriptInvoke.type = "text/javascript";
+    scriptInvoke.src = "https://www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js";
+    scriptInvoke.async = true;
+
+    containerRef.current.appendChild(scriptOptions);
+    containerRef.current.appendChild(scriptInvoke);
+  }, []);
+
+  return <div ref={containerRef} className="w-[160px] h-[600px] min-h-[600px]" />;
+}
+
+export default function SidebarAds() {
   return (
     <>
       {/* Left Banner */}
-      <aside className="hidden lg:block fixed left-2 top-24 w-[160px] h-[600px] z-[9999]">
-        <iframe
-          srcDoc={adHtml}
-          width="160"
-          height="600"
-          style={{ border: 'none', overflow: 'hidden' }}
-          title="Adsterra Left Banner"
-        />
+      <aside className="hidden xl:block fixed left-2 top-24 w-[160px] h-[600px] z-[99999] pointer-events-auto">
+        <AdSlot />
       </aside>
 
       {/* Right Banner */}
-      <aside className="hidden lg:block fixed right-2 top-24 w-[160px] h-[600px] z-[9999]">
-        <iframe
-          srcDoc={adHtml}
-          width="160"
-          height="600"
-          style={{ border: 'none', overflow: 'hidden' }}
-          title="Adsterra Right Banner"
-        />
+      <aside className="hidden xl:block fixed right-2 top-24 w-[160px] h-[600px] z-[99999] pointer-events-auto">
+        <AdSlot />
       </aside>
     </>
   );
