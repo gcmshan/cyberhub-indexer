@@ -127,7 +127,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
       console.error("Fetch error:", err);
       setResults([]);
       setTrustedSites([]);
-    } finally {
+    } fontally {
       setLoading(false);
     }
   };
@@ -178,7 +178,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
                   setShowSuggestions(true);
                 }
               }}
-              placeholder="Type exact game name for best results (e.g. GTA V)..."
+              placeholder="Type exact game name for best results..."
               className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm sm:text-base truncate"
             />
             <button
