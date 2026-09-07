@@ -203,6 +203,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
                     setQuery(title);
                     setLastSelected(title);
                     setShowSuggestions(false);
+                    fetchResults(title); // Suggestion එක click කළ සැනින් auto-search වේ
                   }}
                   className="px-4 py-3 hover:bg-slate-800 text-sm cursor-pointer border-b border-slate-800/50 last:border-0 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors"
                 >
