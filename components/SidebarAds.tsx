@@ -18,6 +18,9 @@ function SingleAdUnit() {
     iframe.style.overflow = "hidden";
     iframe.setAttribute("scrolling", "no");
 
+    // Block top-level redirects/navigation from ad scripts
+    iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
+
     // Adsterra script payload injected inside isolated iframe context
     iframe.srcdoc = `
       <!DOCTYPE html>
