@@ -84,7 +84,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
       const res = await fetch(
         `${API_BASE_URL}/api/search?q=${encodeURIComponent(searchQuery)}`
       );
-      
+
       if (!res.ok) {
         throw new Error(`Server status: ${res.status}`);
       }
@@ -98,8 +98,8 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
         const titleA = (a.title || "").toLowerCase();
         const titleB = (b.title || "").toLowerCase();
 
-        const queryWords = cleanQuery.split(" ").filter(w => w.length > 0);
-        
+        const queryWords = cleanQuery.split(" ").filter((w) => w.length > 0);
+
         const fullMatchA = titleA.includes(cleanQuery);
         const fullMatchB = titleB.includes(cleanQuery);
 
@@ -111,8 +111,8 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
         if (startsA && !startsB) return -1;
         if (!startsA && startsB) return 1;
 
-        const wordsMatchedA = queryWords.filter(word => titleA.includes(word)).length;
-        const wordsMatchedB = queryWords.filter(word => titleB.includes(word)).length;
+        const wordsMatchedA = queryWords.filter((word) => titleA.includes(word)).length;
+        const wordsMatchedB = queryWords.filter((word) => titleB.includes(word)).length;
 
         if (wordsMatchedA !== wordsMatchedB) {
           return wordsMatchedB - wordsMatchedA;
@@ -178,8 +178,8 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
                   setShowSuggestions(true);
                 }
               }}
-              placeholder="Type any PC game name (e.g. GTA V, God of War)..."
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              placeholder="Type exact game name for best results (e.g. GTA V)..."
+              className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm sm:text-base truncate"
             />
             <button
               type="submit"
@@ -255,7 +255,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
                     alt={item.title}
                     className="w-full h-48 object-cover"
                   />
-                  
+
                   <div className="p-5 flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-2">
