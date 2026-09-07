@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Turnstile } from "@marsidev/react-turnstile";
 
 const API_BASE_URL = "https://withered-moon-9290.gcmshan.workers.dev";
-const TURNSTILE_SITE_KEY = "0x4AAAAAAAzIXP1v1o_IW1NK";
+const TURNSTILE_SITE_KEY = "0x4AAAAAAAzIXN4vio_TWdNk";
 
 interface AllInOneSearchProps {
   initialQuery?: string;
