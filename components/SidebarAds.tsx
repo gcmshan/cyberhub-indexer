@@ -1,60 +1,51 @@
 "use client";
-import { useEffect, useRef } from "react";
 
 export default function SidebarAds() {
-  const leftAdRef = useRef<HTMLDivElement>(null);
-  const rightAdRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const createAdScript = () => {
-      const fragment = document.createDocumentFragment();
-      
-      const conf = document.createElement("script");
-      conf.type = "text/javascript";
-      conf.text = `
-        atOptions = {
-          'key' : 'e21e0e45d975b4363f88fdde709cf094',
-          'format' : 'iframe',
-          'height' : 600,
-          'width' : 160,
-          'params' : {}
-        };
-      `;
-      
-      const inv = document.createElement("script");
-      inv.type = "text/javascript";
-      inv.src = "https://www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js";
-
-      fragment.appendChild(conf);
-      fragment.appendChild(inv);
-      return fragment;
-    };
-
-    if (leftAdRef.current && leftAdRef.current.children.length === 0) {
-      leftAdRef.current.appendChild(createAdScript());
-    }
-
-    if (rightAdRef.current && rightAdRef.current.children.length === 0) {
-      rightAdRef.current.appendChild(createAdScript());
-    }
-  }, []);
+  const adSrcDoc = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        </style>
+      </head>
+      <body>
+        <script type="text/javascript">
+          atOptions = {
+            'key' : 'e21e0e45d975b4363f88fdde709cf094',
+            'format' : 'iframe',
+            'height' : 600,
+            'width' : 160,
+            'params' : {}
+          };
+        </script>
+        <script type="text/javascript" src="https://www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js"></script>
+      </body>
+    </html>
+  `;
 
   return (
     <>
-      {/* Left Ad Container */}
-      <aside 
-        className="hidden xl:block fixed left-0 top-20 w-[160px] h-[600px]"
-        style={{ zIndex: 99999 }}
-      >
-        <div ref={leftAdRef} className="w-[160px] h-[600px] bg-transparent" />
+      {/* Left Banner */}
+      <aside className="hidden lg:block fixed left-2 top-24 w-[160px] h-[600px] z-[9999]">
+        <iframe
+          srcDoc={adSrcDoc}
+          width="160"
+          height="600"
+          className="border-0 overflow-hidden"
+          title="Adsterra Left Banner"
+        />
       </aside>
 
-      {/* Right Ad Container */}
-      <aside 
-        className="hidden xl:block fixed right-0 top-20 w-[160px] h-[600px]"
-        style={{ zIndex: 99999 }}
-      >
-        <div ref={rightAdRef} className="w-[160px] h-[600px] bg-transparent" />
+      {/* Right Banner */}
+      <aside className="hidden lg:block fixed right-2 top-24 w-[160px] h-[600px] z-[9999]">
+        <iframe
+          srcDoc={adSrcDoc}
+          width="160"
+          height="600"
+          className="border-0 overflow-hidden"
+          title="Adsterra Right Banner"
+        />
       </aside>
     </>
   );
