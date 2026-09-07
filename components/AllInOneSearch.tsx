@@ -28,7 +28,6 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Dynamic Route එකකින් direct query එකක් ආවොත් auto fetch කිරීම
   useEffect(() => {
     if (initialQuery) {
       setQuery(initialQuery);
@@ -83,7 +82,6 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
     return () => clearTimeout(delayDebounceFn);
   }, [query, lastSelected]);
 
-  // Search logic එක triggers කිරීම (Verification Check සමඟ)
   const triggerSearch = (searchQuery: string) => {
     if (!searchQuery.trim()) return;
 
@@ -110,7 +108,6 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
       const data = await res.json();
       let rawResults = data.results || [];
 
-      // Smart Search Sorting Algorithm
       const cleanQuery = searchQuery.toLowerCase().trim();
 
       const sortedResults = rawResults.sort((a: any, b: any) => {
@@ -166,7 +163,6 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
 
   return (
     <div className="w-full px-4 text-white py-6">
-      {/* Top Bar */}
       <div className="flex justify-between items-center max-w-5xl mx-auto mb-6">
         <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -180,7 +176,6 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
         </button>
       </div>
 
-      {/* Main Header */}
       <div className="text-center mb-8">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2">
           Search Any PC Game
@@ -219,7 +214,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
             </button>
           </form>
 
-          {/* Auto Suggestions Dropdown */}
+          {/* Auto Suggestions Dropdown (Auto-search එක නැවැත්වූ කොටස) */}
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute left-0 right-28 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
               {suggestions.map((title, idx) => (
@@ -229,7 +224,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
                     setQuery(title);
                     setLastSelected(title);
                     setShowSuggestions(false);
-                    triggerSearch(title);
+                    // auto fetch නොකර direct search bar එකට පමණක් දමයි
                   }}
                   className="px-4 py-3 hover:bg-slate-800 text-sm cursor-pointer border-b border-slate-800/50 last:border-0 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors"
                 >
@@ -341,7 +336,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
         )}
       </div>
 
-      {/* Cloudflare Turnstile Verification Modal */}
+      {/* Cloudflare Turnstile Modal */}
       {showCaptchaModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl relative">
