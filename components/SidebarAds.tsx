@@ -6,8 +6,9 @@ export default function SidebarAds() {
   const rightAdRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Left Ad Inject Logic
-    if (leftAdRef.current && leftAdRef.current.children.length === 0) {
+    const createAdScript = () => {
+      const fragment = document.createDocumentFragment();
+      
       const conf = document.createElement("script");
       conf.type = "text/javascript";
       conf.text = `
@@ -19,44 +20,41 @@ export default function SidebarAds() {
           'params' : {}
         };
       `;
+      
       const inv = document.createElement("script");
       inv.type = "text/javascript";
       inv.src = "https://www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js";
-      leftAdRef.current.appendChild(conf);
-      leftAdRef.current.appendChild(inv);
+
+      fragment.appendChild(conf);
+      fragment.appendChild(inv);
+      return fragment;
+    };
+
+    if (leftAdRef.current && leftAdRef.current.children.length === 0) {
+      leftAdRef.current.appendChild(createAdScript());
     }
 
-    // Right Ad Inject Logic
     if (rightAdRef.current && rightAdRef.current.children.length === 0) {
-      const conf2 = document.createElement("script");
-      conf2.type = "text/javascript";
-      conf2.text = `
-        atOptions = {
-          'key' : 'e21e0e45d975b4363f88fdde709cf094',
-          'format' : 'iframe',
-          'height' : 600,
-          'width' : 160,
-          'params' : {}
-        };
-      `;
-      const inv2 = document.createElement("script");
-      inv2.type = "text/javascript";
-      inv2.src = "https://www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js";
-      rightAdRef.current.appendChild(conf2);
-      rightAdRef.current.appendChild(inv2);
+      rightAdRef.current.appendChild(createAdScript());
     }
   }, []);
 
   return (
     <>
-      {/* Left Banner - Standard Desktop (1024px+) වලදී පෙනේ */}
-      <aside className="hidden lg:block fixed left-2 top-24 w-[160px] h-[600px] z-50">
-        <div ref={leftAdRef} className="w-[160px] h-[600px]" />
+      {/* Left Ad Container */}
+      <aside 
+        className="hidden xl:block fixed left-0 top-20 w-[160px] h-[600px]"
+        style={{ zIndex: 99999 }}
+      >
+        <div ref={leftAdRef} className="w-[160px] h-[600px] bg-transparent" />
       </aside>
 
-      {/* Right Banner - Standard Desktop (1024px+) වලදී පෙනේ */}
-      <aside className="hidden lg:block fixed right-2 top-24 w-[160px] h-[600px] z-50">
-        <div ref={rightAdRef} className="w-[160px] h-[600px]" />
+      {/* Right Ad Container */}
+      <aside 
+        className="hidden xl:block fixed right-0 top-20 w-[160px] h-[600px]"
+        style={{ zIndex: 99999 }}
+      >
+        <div ref={rightAdRef} className="w-[160px] h-[600px] bg-transparent" />
       </aside>
     </>
   );
