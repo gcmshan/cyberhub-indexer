@@ -8,46 +8,17 @@ function SingleAdUnit() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Clear element to prevent duplicating scripts
-    containerRef.current.innerHTML = "";
-
-    const iframe = document.createElement("iframe");
-    iframe.width = "160";
-    iframe.height = "600";
-    iframe.style.border = "none";
-    iframe.style.overflow = "hidden";
-    iframe.scrolling = "no";
-
-    containerRef.current.appendChild(iframe);
-
-    const doc = iframe.contentWindow?.document;
-    if (doc) {
-      doc.open();
-      // Injecting your Adsterra code into isolated iframe context
-      doc.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <style>
-              html, body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
-            </style>
-          </head>
-          <body>
-            <script type="text/javascript">
-              atOptions = {
-                'key' : 'e21e0e45d975b4363f88fdde709cf094',
-                'format' : 'iframe',
-                'height' : 600,
-                'width' : 160,
-                'params' : {}
-              };
-            </script>
-            <script type="text/javascript" src="https://www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js"></script>
-          </body>
-        </html>
-      `);
-      doc.close();
-    }
+    // Direct dynamic injection matching A-Ads specification
+    containerRef.current.innerHTML = `
+      <div id="frame" style="width: 160px; margin: auto; z-index: 99998; height: auto;">
+        <iframe 
+          data-aa="2454624" 
+          src="https://ad.a-ads.com/2454624/?size=160x600" 
+          style="border:0; padding:0; width:160px; height:600px; overflow:hidden; display:block; margin:auto;"
+          scrolling="no">
+        </iframe>
+      </div>
+    `;
   }, []);
 
   return <div ref={containerRef} className="w-[160px] h-[600px]" />;
