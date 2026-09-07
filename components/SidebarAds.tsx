@@ -35,15 +35,15 @@ export default function SidebarAds() {
 
   return (
     <>
-      {/* Left Banner - Desktop screens වල විතරක් දිස්වේ */}
-      <aside className="hidden xl:block fixed left-4 top-28 w-[160px] h-[600px] z-20">
-        <div ref={leftAdRef} className="w-full h-full" />
-      </aside>
+      {/* Left Banner */}
+      <div className="hidden 2xl:block fixed left-2 top-24 w-[160px] h-[600px] z-50 pointer-events-auto">
+        <div ref={leftAdRef} className="w-full h-full min-h-[600px]" />
+      </div>
 
-      {/* Right Banner - Desktop screens වල විතරක් දිස්වේ */}
-      <aside className="hidden xl:block fixed right-4 top-28 w-[160px] h-[600px] z-20">
-        <div ref={rightAdRef} className="w-full h-full" />
-      </aside>
+      {/* Right Banner */}
+      <div className="hidden 2xl:block fixed right-2 top-24 w-[160px] h-[600px] z-50 pointer-events-auto">
+        <div ref={rightAdRef} className="w-full h-full min-h-[600px]" />
+      </div>
     </>
   );
 }
