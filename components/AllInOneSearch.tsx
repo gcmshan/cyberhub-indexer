@@ -2,10 +2,8 @@
 
 import FeedbackModal from "./FeedbackModal";
 import React, { useState, useEffect, useRef } from "react";
-import { Turnstile } from "@marsidev/react-turnstile";
 
 const API_BASE_URL = "https://withered-moon-9290.gcmshan.workers.dev";
-const TURNSTILE_SITE_KEY = "0x4AAAAAAAzIXN4vio_TWdNk";
 
 interface AllInOneSearchProps {
   initialQuery?: string;
@@ -20,8 +18,8 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
   const [trustedSites, setTrustedSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
-  // Verification State
-  const [isVerified, setIsVerified] = useState(false);
+  // Directly set to true to prevent Turnstile render crashes
+  const [isVerified] = useState(true);
 
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -82,11 +80,6 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
 
   const fetchResults = async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
-    
-    if (!isVerified) {
-      alert("Please complete the Cloudflare security verification check first!");
-      return;
-    }
 
     setShowSuggestions(false);
     setLoading(true);
@@ -172,22 +165,6 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
       </div>
 
       <div className="max-w-5xl mx-auto">
-        {/* Inline Cloudflare Turnstile Verification Box */}
-        {!isVerified && (
-          <div className="mb-5 flex flex-col items-center justify-center p-4 bg-slate-900 border border-indigo-500/30 rounded-2xl shadow-xl">
-            <p className="text-xs font-semibold text-indigo-300 mb-2 flex items-center gap-1.5">
-              <span>🛡️</span> Security Verification Required Before Search
-            </p>
-            <Turnstile
-              siteKey={TURNSTILE_SITE_KEY}
-              onSuccess={() => setIsVerified(true)}
-              options={{
-                theme: "dark",
-              }}
-            />
-          </div>
-        )}
-
         <div className="relative mb-6" ref={searchRef}>
           <form onSubmit={handleSearch} className="flex gap-2">
             <input
@@ -216,7 +193,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
             </button>
           </form>
 
-          {/* Suggestions List (Click කළ පසු auto fetch නොවේ, Search bar එකට text එක පමණක් යෙදේ) */}
+          {/* Suggestions List */}
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute left-0 right-28 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
               {suggestions.map((title, idx) => (
