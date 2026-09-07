@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Turnstile } from "@marsidev/react-turnstile";
 
 const API_BASE_URL = "https://withered-moon-9290.gcmshan.workers.dev";
-const TURNSTILE_SITE_KEY = "0x4AAAAAAAcBKb2K3NbxdgF1m";
+const TURNSTILE_SITE_KEY = "0x4AAAAAAAzIXP1v1o_IW1NK";
 
 interface AllInOneSearchProps {
   initialQuery?: string;
@@ -20,10 +20,8 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
   const [trustedSites, setTrustedSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
-  // Verification States
+  // Verification State
   const [isVerified, setIsVerified] = useState(false);
-  const [showCaptchaModal, setShowCaptchaModal] = useState(false);
-  const [pendingSearchQuery, setPendingSearchQuery] = useState<string>("");
 
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -32,7 +30,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
     if (initialQuery) {
       setQuery(initialQuery);
       setLastSelected(initialQuery);
-      triggerSearch(initialQuery);
+      fetchResults(initialQuery);
     }
   }, [initialQuery]);
 
@@ -82,18 +80,14 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
     return () => clearTimeout(delayDebounceFn);
   }, [query, lastSelected]);
 
-  const triggerSearch = (searchQuery: string) => {
-    if (!searchQuery.trim()) return;
-
-    if (!isVerified) {
-      setPendingSearchQuery(searchQuery);
-      setShowCaptchaModal(true);
-    } else {
-      fetchResults(searchQuery);
-    }
-  };
-
   const fetchResults = async (searchQuery: string) => {
+    if (!searchQuery.trim()) return;
+    
+    if (!isVerified) {
+      alert("Please complete the Cloudflare security verification check first!");
+      return;
+    }
+
     setShowSuggestions(false);
     setLoading(true);
     try {
@@ -150,15 +144,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    triggerSearch(query);
-  };
-
-  const handleTurnstileSuccess = () => {
-    setIsVerified(true);
-    setShowCaptchaModal(false);
-    if (pendingSearchQuery) {
-      fetchResults(pendingSearchQuery);
-    }
+    fetchResults(query);
   };
 
   return (
@@ -176,7 +162,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
         </button>
       </div>
 
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2">
           Search Any PC Game
         </h1>
@@ -186,6 +172,22 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
       </div>
 
       <div className="max-w-5xl mx-auto">
+        {/* Inline Cloudflare Turnstile Verification Box */}
+        {!isVerified && (
+          <div className="mb-5 flex flex-col items-center justify-center p-4 bg-slate-900 border border-indigo-500/30 rounded-2xl shadow-xl">
+            <p className="text-xs font-semibold text-indigo-300 mb-2 flex items-center gap-1.5">
+              <span>🛡️</span> Security Verification Required Before Search
+            </p>
+            <Turnstile
+              siteKey={TURNSTILE_SITE_KEY}
+              onSuccess={() => setIsVerified(true)}
+              options={{
+                theme: "dark",
+              }}
+            />
+          </div>
+        )}
+
         <div className="relative mb-6" ref={searchRef}>
           <form onSubmit={handleSearch} className="flex gap-2">
             <input
@@ -207,14 +209,14 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
             />
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !isVerified}
               className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {loading ? "Searching..." : "Search"}
             </button>
           </form>
 
-          {/* Auto Suggestions Dropdown (Auto-search එක නැවැත්වූ කොටස) */}
+          {/* Suggestions List (Click කළ පසු auto fetch නොවේ, Search bar එකට text එක පමණක් යෙදේ) */}
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute left-0 right-28 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
               {suggestions.map((title, idx) => (
@@ -224,7 +226,6 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
                     setQuery(title);
                     setLastSelected(title);
                     setShowSuggestions(false);
-                    // auto fetch නොකර direct search bar එකට පමණක් දමයි
                   }}
                   className="px-4 py-3 hover:bg-slate-800 text-sm cursor-pointer border-b border-slate-800/50 last:border-0 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors"
                 >
@@ -335,31 +336,6 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
           </div>
         )}
       </div>
-
-      {/* Cloudflare Turnstile Modal */}
-      {showCaptchaModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl relative">
-            <button
-              onClick={() => setShowCaptchaModal(false)}
-              className="absolute top-3 right-3 text-slate-400 hover:text-white"
-            >
-              ✕
-            </button>
-            <div className="text-3xl mb-2">🛡️</div>
-            <h3 className="text-lg font-bold text-white mb-1">Human Verification</h3>
-            <p className="text-xs text-slate-400 mb-4">
-              Please complete the quick security check to view search results.
-            </p>
-            <div className="flex justify-center my-2">
-              <Turnstile
-                siteKey={TURNSTILE_SITE_KEY}
-                onSuccess={handleTurnstileSuccess}
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       <FeedbackModal
         isOpen={isFeedbackOpen}
