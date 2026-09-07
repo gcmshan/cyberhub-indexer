@@ -7,8 +7,6 @@ function AdSlot() {
 
   useEffect(() => {
     if (!containerRef.current) return;
-
-    // Remove existing scripts if re-rendering
     containerRef.current.innerHTML = "";
 
     const scriptOptions = document.createElement("script");
@@ -32,19 +30,19 @@ function AdSlot() {
     containerRef.current.appendChild(scriptInvoke);
   }, []);
 
-  return <div ref={containerRef} className="w-[160px] h-[600px] min-h-[600px]" />;
+  return <div ref={containerRef} className="w-[160px] h-[600px] border border-dashed border-slate-700 flex items-center justify-center text-xs text-slate-500" />;
 }
 
 export default function SidebarAds() {
   return (
     <>
-      {/* Left Banner */}
-      <aside className="hidden xl:block fixed left-2 top-24 w-[160px] h-[600px] z-[99999] pointer-events-auto">
+      {/* Left Banner - Always Rendered */}
+      <aside className="fixed left-2 top-24 w-[160px] h-[600px] z-[99999] pointer-events-auto">
         <AdSlot />
       </aside>
 
-      {/* Right Banner */}
-      <aside className="hidden xl:block fixed right-2 top-24 w-[160px] h-[600px] z-[99999] pointer-events-auto">
+      {/* Right Banner - Always Rendered */}
+      <aside className="fixed right-2 top-24 w-[160px] h-[600px] z-[99999] pointer-events-auto">
         <AdSlot />
       </aside>
     </>
