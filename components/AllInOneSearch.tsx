@@ -2,8 +2,11 @@
 
 import FeedbackModal from "./FeedbackModal";
 import React, { useState, useEffect, useRef } from "react";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const API_BASE_URL = "https://withered-moon-9290.gcmshan.workers.dev";
+// Cloudflare Dashboard එකෙන් ලැබුණු Site Key එක
+const TURNSTILE_SITE_KEY = "0x4AAAAAAAr1XN4vio_TWdNk"; 
 
 interface AllInOneSearchProps {
   initialQuery?: string;
@@ -18,8 +21,9 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
   const [trustedSites, setTrustedSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
-  // Directly set to true to prevent Turnstile render crashes
-  const [isVerified] = useState(true);
+  // Turnstile Verification States
+  const [isVerified, setIsVerified] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -85,7 +89,12 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
     setLoading(true);
     try {
       const res = await fetch(
-        `${API_BASE_URL}/api/search?q=${encodeURIComponent(searchQuery)}`
+        `${API_BASE_URL}/api/search?q=${encodeURIComponent(searchQuery)}`,
+        {
+          headers: {
+            "cf-turnstile-response": turnstileToken,
+          },
+        }
       );
       
       if (!res.ok) {
@@ -142,6 +151,20 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
 
   return (
     <div className="w-full px-4 text-white py-6">
+      {/* Invisible Turnstile Component */}
+      <div className="hidden">
+        <Turnstile
+          siteKey={TURNSTILE_SITE_KEY}
+          onSuccess={(token) => {
+            setTurnstileToken(token);
+            setIsVerified(true);
+          }}
+          options={{
+            size: "invisible",
+          }}
+        />
+      </div>
+
       <div className="flex justify-between items-center max-w-5xl mx-auto mb-6">
         <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -203,7 +226,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
                     setQuery(title);
                     setLastSelected(title);
                     setShowSuggestions(false);
-                    fetchResults(title); // Suggestion එක click කළ සැනින් auto-search වේ
+                    fetchResults(title);
                   }}
                   className="px-4 py-3 hover:bg-slate-800 text-sm cursor-pointer border-b border-slate-800/50 last:border-0 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors"
                 >
