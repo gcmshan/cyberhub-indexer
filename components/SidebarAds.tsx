@@ -8,7 +8,7 @@ function SingleAdUnit() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Clear element to prevent duplication
+    // Clear element to prevent duplicating scripts
     containerRef.current.innerHTML = "";
 
     const iframe = document.createElement("iframe");
@@ -20,10 +20,11 @@ function SingleAdUnit() {
 
     containerRef.current.appendChild(iframe);
 
-    const iframeDoc = iframe.contentWindow?.document;
-    if (iframeDoc) {
-      iframeDoc.open();
-      iframeDoc.write(`
+    const doc = iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      // Injecting your Adsterra code into isolated iframe context
+      doc.write(`
         <!DOCTYPE html>
         <html>
           <head>
@@ -33,7 +34,7 @@ function SingleAdUnit() {
           </head>
           <body>
             <script type="text/javascript">
-              var atOptions = {
+              atOptions = {
                 'key' : 'e21e0e45d975b4363f88fdde709cf094',
                 'format' : 'iframe',
                 'height' : 600,
@@ -45,7 +46,7 @@ function SingleAdUnit() {
           </body>
         </html>
       `);
-      iframeDoc.close();
+      doc.close();
     }
   }, []);
 
