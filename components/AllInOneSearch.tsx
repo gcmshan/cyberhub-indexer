@@ -127,7 +127,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
       console.error("Fetch error:", err);
       setResults([]);
       setTrustedSites([]);
-    } fontally {
+    } finally {
       setLoading(false);
     }
   };
