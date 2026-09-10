@@ -192,7 +192,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
 
           {/* Suggestions List */}
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute left-0 right-28 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+            <div className="absolute left-0 right-0 top-full mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
               {suggestions.map((title, idx) => (
                 <div
                   key={idx}
