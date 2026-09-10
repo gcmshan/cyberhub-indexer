@@ -3,37 +3,49 @@
 import { useEffect, useRef } from "react";
 
 function SingleAdUnit() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!iframeRef.current) return;
 
-    containerRef.current.innerHTML = "";
-
-    const scriptOption = document.createElement("script");
-    scriptOption.type = "text/javascript";
-    scriptOption.text = `
-      atOptions = {
-        'key' : 'e21e0e45d975b4363f88fdde709cf094',
-        'format' : 'iframe',
-        'height' : 600,
-        'width' : 160,
-        'params' : {}
-      };
+    const adHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; background: transparent; }
+          </style>
+        </head>
+        <body>
+          <script type="text/javascript">
+            atOptions = {
+              'key' : 'e21e0e45d975b4363f88fdde709cf094',
+              'format' : 'iframe',
+              'height' : 600,
+              'width' : 160,
+              'params' : {}
+            };
+          </script>
+          <script type="text/javascript" src="//www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js"></script>
+        </body>
+      </html>
     `;
 
-    const scriptInvoke = document.createElement("script");
-    scriptInvoke.type = "text/javascript";
-    scriptInvoke.src = "//www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js";
-
-    containerRef.current.appendChild(scriptOption);
-    containerRef.current.appendChild(scriptInvoke);
+    const doc = iframeRef.current.contentDocument;
+    if (doc) {
+      doc.open();
+      doc.write(adHtml);
+      doc.close();
+    }
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      className="w-[160px] h-[600px] bg-slate-900/40 border border-slate-800/50 rounded-xl overflow-hidden flex items-center justify-center"
+    <iframe
+      ref={iframeRef}
+      width="160"
+      height="600"
+      className="border-0 overflow-hidden w-[160px] h-[600px] bg-slate-900/40 border border-slate-800/50 rounded-xl"
+      scrolling="no"
     />
   );
 }
