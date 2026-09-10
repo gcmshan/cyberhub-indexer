@@ -53,14 +53,15 @@ function SingleAdUnit() {
 
 export default function SidebarAds() {
   return (
-    <div className="pointer-events-none">
+    /* hidden lg:block දමීමෙන් Mobile වලදී Ad එක සම්පූර්ණයෙන්ම Hide වී Desktop වල පමණක් පෙන්වයි */
+    <div className="pointer-events-none hidden lg:block">
       {/* Left Sidebar */}
-      <aside className="fixed left-2 top-24 w-[160px] h-[600px] z-[99999] pointer-events-auto">
+      <aside className="fixed left-2 top-24 w-[160px] h-[600px] z-40 pointer-events-auto">
         <SingleAdUnit />
       </aside>
 
       {/* Right Sidebar */}
-      <aside className="fixed right-2 top-24 w-[160px] h-[600px] z-[99999] pointer-events-auto">
+      <aside className="fixed right-2 top-24 w-[160px] h-[600px] z-40 pointer-events-auto">
         <SingleAdUnit />
       </aside>
     </div>

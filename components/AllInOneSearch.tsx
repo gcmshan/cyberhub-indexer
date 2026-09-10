@@ -127,7 +127,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
       console.error("Fetch error:", err);
       setResults([]);
       setTrustedSites([]);
-    } finally {
+    } fontally {
       setLoading(false);
     }
   };
@@ -138,7 +138,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
   };
 
   return (
-    <div className="w-full px-4 text-white py-6">
+    <div className="w-full px-4 text-white py-6 overflow-x-hidden">
       <div className="flex justify-between items-center max-w-5xl mx-auto mb-6">
         <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
