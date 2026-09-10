@@ -190,9 +190,9 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
             </button>
           </form>
 
-          {/* Suggestions List */}
+          {/* Suggestions List - Fixed positioning & z-index */}
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute left-0 right-0 top-full mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+            <div className="absolute left-0 right-0 top-full mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[9999] overflow-hidden min-w-full">
               {suggestions.map((title, idx) => (
                 <div
                   key={idx}
