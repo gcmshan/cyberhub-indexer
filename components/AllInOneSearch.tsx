@@ -138,7 +138,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
   };
 
   return (
-    <div className="w-full px-4 text-white py-6 overflow-x-hidden">
+    <div className="w-full px-4 text-white py-6 overflow-visible">
       <div className="flex justify-between items-center max-w-5xl mx-auto mb-6">
         <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -162,54 +162,58 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
       </div>
 
       <div className="max-w-5xl mx-auto">
-        <div className="relative mb-6" ref={searchRef}>
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                if (e.target.value !== lastSelected) {
-                  setLastSelected("");
-                }
-              }}
-              onFocus={() => {
-                if (query.trim().length >= 2 && query !== lastSelected) {
-                  setShowSuggestions(true);
-                }
-              }}
-              placeholder="Type exact game name for best results..."
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm sm:text-base truncate"
-            />
+        <div className="mb-6" ref={searchRef}>
+          <form onSubmit={handleSearch} className="flex gap-2 items-start">
+            {/* Wrapper for input field to control dropdown placement */}
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  if (e.target.value !== lastSelected) {
+                    setLastSelected("");
+                  }
+                }}
+                onFocus={() => {
+                  if (query.trim().length >= 2 && query !== lastSelected) {
+                    setShowSuggestions(true);
+                  }
+                }}
+                placeholder="Type exact game name for best results..."
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm sm:text-base truncate"
+              />
+
+              {/* Suggestions List - Fixed positioning directly under input */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-[calc(100%+8px)] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[99999] overflow-hidden max-h-80 overflow-y-auto">
+                  {suggestions.map((title, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        setQuery(title);
+                        setLastSelected(title);
+                        setShowSuggestions(false);
+                        fetchResults(title);
+                      }}
+                      className="px-4 py-3 hover:bg-slate-800 text-sm cursor-pointer border-b border-slate-800/50 last:border-0 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors"
+                    >
+                      <span>🎮</span>
+                      <span>{title}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 shrink-0"
             >
               {loading ? "Searching..." : "Search"}
             </button>
           </form>
-
-          {/* Suggestions List - Fixed positioning & z-index */}
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute left-0 right-0 top-full mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[9999] overflow-hidden min-w-full">
-              {suggestions.map((title, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => {
-                    setQuery(title);
-                    setLastSelected(title);
-                    setShowSuggestions(false);
-                    fetchResults(title);
-                  }}
-                  className="px-4 py-3 hover:bg-slate-800 text-sm cursor-pointer border-b border-slate-800/50 last:border-0 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors"
-                >
-                  <span>🎮</span>
-                  <span>{title}</span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {trustedSites.length > 0 && (
