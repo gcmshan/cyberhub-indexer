@@ -10,50 +10,36 @@ function SingleAdUnit() {
 
     containerRef.current.innerHTML = "";
 
-    const iframe = document.createElement("iframe");
-    iframe.loading = "lazy";
-    iframe.style.width = "160px";
-    iframe.style.height = "600px";
-    iframe.style.border = "0px";
-    iframe.style.overflow = "hidden";
-    iframe.setAttribute("scrolling", "no");
-
-    // Block top-level redirects/navigation from ad scripts
-    iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
-
-    // Adsterra script payload injected inside isolated iframe context
-    iframe.srcdoc = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            html, body { margin: 0; padding: 0; overflow: hidden; background: transparent; display: flex; justify-content: center; }
-          </style>
-        </head>
-        <body>
-          <script type="text/javascript">
-            atOptions = {
-              'key' : 'e21e0e45d975b4363f88fdde709cf094',
-              'format' : 'iframe',
-              'height' : 600,
-              'width' : 160,
-              'params' : {}
-            };
-          </script>
-          <script type="text/javascript" src="https://www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js"></script>
-        </body>
-      </html>
+    const scriptOption = document.createElement("script");
+    scriptOption.type = "text/javascript";
+    scriptOption.text = `
+      atOptions = {
+        'key' : 'e21e0e45d975b4363f88fdde709cf094',
+        'format' : 'iframe',
+        'height' : 600,
+        'width' : 160,
+        'params' : {}
+      };
     `;
 
-    containerRef.current.appendChild(iframe);
+    const scriptInvoke = document.createElement("script");
+    scriptInvoke.type = "text/javascript";
+    scriptInvoke.src = "//www.highrevenueformat.com/e21e0e45d975b4363f88fdde709cf094/invoke.js";
+
+    containerRef.current.appendChild(scriptOption);
+    containerRef.current.appendChild(scriptInvoke);
   }, []);
 
-  return <div ref={containerRef} className="w-[160px] h-[600px]" />;
+  return (
+    <div
+      ref={containerRef}
+      className="w-[160px] h-[600px] bg-slate-900/40 border border-slate-800/50 rounded-xl overflow-hidden flex items-center justify-center"
+    />
+  );
 }
 
 export default function SidebarAds() {
   return (
-    /* hidden lg:block දමීමෙන් Mobile වලදී Ad එක සම්පූර්ණයෙන්ම Hide වී Desktop වල පමණක් පෙන්වයි */
     <div className="pointer-events-none hidden lg:block">
       {/* Left Sidebar */}
       <aside className="fixed left-2 top-24 w-[160px] h-[600px] z-40 pointer-events-auto">
