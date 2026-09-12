@@ -29,9 +29,9 @@ POPULAR_GAMES = [
     "God of War", "God of War Ragnarök", "Cyberpunk 2077", "Elden Ring",
     "Red Dead Redemption 2", "Forza Horizon 5", "The Witcher 3: Wild Hunt",
     "Ghost of Tsushima", "Marvel's Spider-Man Remastered", "Hogwarts Legacy",
-    "The Last of Us Part I", "Horizon Forbidden West", "Resident Evil 4",
-    "Tekken 8", "FC 24", "Need for Speed Unbound", "Assassin's Creed Valhalla",
-    "Call of Duty: Modern Warfare", "Far Cry 6", "Palworld", "Helldivers 2"
+    "The Last of Us Part I", "The Last of Us Part II", "Horizon Forbidden West", 
+    "Resident Evil 4", "Tekken 8", "FC 24", "Need for Speed Unbound", 
+    "Assassin's Creed Valhalla", "Call of Duty: Modern Warfare", "Palworld", "Helldivers 2"
 ]
 
 EXCLUDE_KEYWORDS = [
@@ -39,6 +39,23 @@ EXCLUDE_KEYWORDS = [
     "changelog", "update list", "extended look", "trailer", "teaser", 
     "gameplay video", "first look", "soundtrack", "ost", "2160p", "1080p video", "4k video"
 ]
+
+def clean_query_for_search(raw_query: str) -> str:
+    """ Colons, hyphens, and specific version terms clean කර Target Search Engine එකට Broad Search එකක් යැවීමට සකසයි """
+    # Special characters (:, -, ?, etc.) හිස්තැනක් බවට පත් කරයි
+    cleaned = re.sub(r'[:\-_?]', ' ', raw_query)
+    
+    # Common version terms අයින් කර Broad Series Search එකක් ලබා දෙයි (e.g. "Last of Us Part 2" -> "Last of Us")
+    # මෙය බහුලව භාවිත වන Part I, Part II, Remastered games එකම ලැයිස්තුවට ගෙන ඒමට උපකාරී වේ
+    words = cleaned.split()
+    filtered_words = []
+    for w in words:
+        if w.lower() in ["remastered", "repack", "build"]:
+            continue
+        filtered_words.append(w)
+    
+    final_query = " ".join(filtered_words).strip()
+    return final_query if final_query else raw_query.strip()
 
 def is_valid_game_post(title: str) -> bool:
     title_lower = title.lower()
@@ -133,17 +150,21 @@ async def extract_magnet_or_torrent(client: httpx.AsyncClient, page_url: str):
 
 @app.get("/api/search")
 async def search_games(q: str = Query("", min_length=1)):
-    query_clean = q.strip().lower()
+    original_query = q.strip()
+    search_term = clean_query_for_search(original_query)
+    encoded_search_term = urllib.parse.quote_plus(search_term)
+    
     results = []
 
     async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=20.0) as client:
         # 1. FitGirl Repacks Search
         try:
-            fg_url = f"https://fitgirl-repacks.site/?s={urllib.parse.quote_plus(query_clean)}"
+            fg_url = f"https://fitgirl-repacks.site/?s={encoded_search_term}"
             fg_html = await fetch_html(client, fg_url)
             if fg_html:
                 soup = BeautifulSoup(fg_html, 'html.parser')
                 articles = soup.find_all('article', class_='post')
+                fg_count = 0
                 for article in articles:
                     title_elem = article.find('h1', class_='entry-title')
                     if not title_elem or not title_elem.find('a'): continue
@@ -164,13 +185,15 @@ async def search_games(q: str = Query("", min_length=1)):
                         "pageUrl": page_url,
                         "magnetUrl": magnet_link
                     })
-                    if len(results) >= 3: break
+                    fg_count += 1
+                    # සීමාව 6 දක්වා වැඩි කර ඇති බැවින් Part 1, Part 2, Remastered සියල්ල එකවර එකතු වේ
+                    if fg_count >= 6: break
         except Exception as e: 
             print(f"FitGirl Error: {e}")
 
         # 2. DODI Repacks Search
         try:
-            dodi_url = f"https://dodi-repacks.site/?s={urllib.parse.quote_plus(query_clean)}"
+            dodi_url = f"https://dodi-repacks.site/?s={encoded_search_term}"
             dodi_html = await fetch_html(client, dodi_url)
             if dodi_html:
                 soup = BeautifulSoup(dodi_html, 'html.parser')
@@ -196,15 +219,16 @@ async def search_games(q: str = Query("", min_length=1)):
                         "magnetUrl": magnet_link
                     })
                     dodi_count += 1
-                    if dodi_count >= 3: break
+                    if dodi_count >= 6: break
         except Exception as e: 
             print(f"DODI Error: {e}")
 
     trusted_sites = [
-        {"name": "FitGirl Repacks", "badge": "Verified Repacker", "url": f"https://fitgirl-repacks.site/?s={urllib.parse.quote_plus(query_clean)}"},
-        {"name": "DODI Repacks", "badge": "Verified Repacker", "url": f"https://dodi-repacks.site/?s={urllib.parse.quote_plus(query_clean)}"},
-        {"name": "SteamRIP", "badge": "Pre-Installed Direct", "url": f"https://steamrip.com/?s={urllib.parse.quote_plus(query_clean)}"}
+        {"name": "FitGirl Repacks", "badge": "Verified Repacker", "url": f"https://fitgirl-repacks.site/?s={encoded_search_term}"},
+        {"name": "DODI Repacks", "badge": "Verified Repacker", "url": f"https://dodi-repacks.site/?s={encoded_search_term}"},
+        {"name": "SteamRIP", "badge": "Pre-Installed Direct", "url": f"https://steamrip.com/?s={encoded_search_term}"}
     ]
 
     return {"results": results, "trustedSites": trusted_sites}
 
+handler = Mangum(app)
