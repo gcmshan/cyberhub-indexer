@@ -14,6 +14,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [lastSelected, setLastSelected] = useState(initialQuery);
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1); // අලුතින් එකතු කළ state එක
   const [results, setResults] = useState<any[]>([]);
   const [trustedSites, setTrustedSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -171,8 +172,30 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
+                  setSelectedIndex(-1); // ටයිප් කරනකොට index එක reset වේ
                   if (e.target.value !== lastSelected) {
                     setLastSelected("");
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (!showSuggestions || suggestions.length === 0) return;
+
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setSelectedIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+                  } else if (e.key === "Enter") {
+                    if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+                      e.preventDefault();
+                      const selectedTitle = suggestions[selectedIndex];
+                      setQuery(selectedTitle);
+                      setLastSelected(selectedTitle);
+                      setShowSuggestions(false);
+                      setSelectedIndex(-1);
+                      fetchResults(selectedTitle);
+                    }
                   }
                 }}
                 onFocus={() => {
@@ -194,9 +217,14 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
                         setQuery(title);
                         setLastSelected(title);
                         setShowSuggestions(false);
+                        setSelectedIndex(-1);
                         fetchResults(title);
                       }}
-                      className="px-4 py-3 hover:bg-slate-800 text-sm cursor-pointer border-b border-slate-800/50 last:border-0 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors"
+                      className={`px-4 py-3 text-sm cursor-pointer border-b border-slate-800/50 last:border-0 flex items-center gap-2.5 transition-colors ${
+                        selectedIndex === idx
+                          ? "bg-slate-800 text-white font-medium"
+                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                      }`}
                     >
                       <span>🎮</span>
                       <span>{title}</span>
