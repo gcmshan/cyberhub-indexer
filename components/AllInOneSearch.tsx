@@ -14,7 +14,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [lastSelected, setLastSelected] = useState(initialQuery);
-  const [selectedIndex, setSelectedIndex] = useState<number>(-1); // අලුතින් එකතු කළ state එක
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [results, setResults] = useState<any[]>([]);
   const [trustedSites, setTrustedSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -172,7 +172,7 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
-                  setSelectedIndex(-1); // ටයිප් කරනකොට index එක reset වේ
+                  setSelectedIndex(-1);
                   if (e.target.value !== lastSelected) {
                     setLastSelected("");
                   }
@@ -182,10 +182,14 @@ export default function AllInOneSearch({ initialQuery = "" }: AllInOneSearchProp
 
                   if (e.key === "ArrowDown") {
                     e.preventDefault();
-                    setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+                    const nextIndex = selectedIndex < suggestions.length - 1 ? selectedIndex + 1 : 0;
+                    setSelectedIndex(nextIndex);
+                    setQuery(suggestions[nextIndex]); // Arrow Down එකෙන් යද්දී input එකට එකතු වේ
                   } else if (e.key === "ArrowUp") {
                     e.preventDefault();
-                    setSelectedIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+                    const prevIndex = selectedIndex > 0 ? selectedIndex - 1 : suggestions.length - 1;
+                    setSelectedIndex(prevIndex);
+                    setQuery(suggestions[prevIndex]); // Arrow Up එකෙන් යද්දී input එකට එකතු වේ
                   } else if (e.key === "Enter") {
                     if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
                       e.preventDefault();
